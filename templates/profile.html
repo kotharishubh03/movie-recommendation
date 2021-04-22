@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile</title>
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<!--script src="https://canvasjs.com/assets/script/jquery-1.11.1.min.js"></script-->
+<script src="https://canvasjs.com/assets/script/jquery.canvasjs.min.js"></script>
+
+    <!--Fontawesome CDN-->
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.3.1/css/all.css"
+        integrity="sha384-mzrmE5qonljUremFsqc01SB46JvROS7bZs3IO2EmfFsd15uHvIt+Y8vEf7N7fWAU" crossorigin="anonymous">
+
+    <!--Custom styles-->
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/profilestyle.css') }}">
+</head>
+
+<body class="mt-3 mb-3 mr-3 ml-3">
+    <div class="card text-center">
+        <div class="card-header display-3 text-warning font-weight-bold">
+            Movie Recommender System
+        </div>
+        <div class="card-body bg-warning">
+            <h5 class="card-title "></h5>
+            <p class="card-text"></p>
+            <div class="media ">
+                <img class="align-self-center mr-3 rounded border-success" src="https://cdn0.iconfinder.com/data/icons/set-ui-app-android/32/8-512.png" alt="Generic placeholder image" style="width: 150px;border: 10px solid;">
+                <div class="media-body">
+                    <h1 class="text-left ml-3">{{ user_data[1] }}</h1>
+                    <h5 class="text-left ml-3">Email: {{ user_data[2] }}</h5>
+                    <h5 class="text-left ml-3">Movies Reviewed : {{ user_data[0] }}</h5>
+                </div>
+            </div>
+        </div>
+        <div class="card-footer text-muted bg-white">
+            <ul class="nav nav-tabs" id="myTab" role="tablist">
+                <li class="nav-item" role="presentation">
+                  <a class="nav-link active" id="home-tab" data-toggle="tab" href="#home" role="tab" aria-controls="home" aria-selected="true">STATS</a>
+                </li>
+                <li class="nav-item" role="presentation">
+                  <a class="nav-link" id="profile-tab" data-toggle="tab" href="#profile" role="tab" aria-controls="profile" aria-selected="false">RECOMMENDATION</a>
+                </li>
+                <li class="nav-item" role="presentation">
+                  <a class="nav-link" id="contact-tab" data-toggle="tab" href="#contact" role="tab" aria-controls="contact" aria-selected="false">MOVIES WATCHED </a>
+                </li>
+              </ul>
+              <div class="tab-content" id="myTabContent">
+                <div class="tab-pane fade show active" id="home" role="tabpanel" aria-labelledby="home-tab">
+                    <div>
+                        <div class="m-3 border border-success" id="chartContainerpie" style="height: 500px; width: 100%;"></div>
+                        <br><div class="m-3 border border-success" id="chartContainerbar" style="height: 500px; width: 100%;"></div>
+                    </div>
+                </div>
+                <div class="tab-pane fade" id="profile" role="tabpanel" aria-labelledby="profile-tab">
+                    gfgjfgjmhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh
+                </div>
+                <div class="tab-pane fade" id="contact" role="tabpanel" aria-labelledby="contact-tab">
+                    <div class="row">
+                        {% for i in data %}
+                        <div class="col-m-4">
+                            <div class="card m-3 " style="width: 18rem;">
+                                <img class="card-img-top" src="{{ i[4] }}" alt="Card image cap">
+                                <div class="card-body">
+                                    <div class="card-text">
+                                        <h5><a href="{{ url_for('profile',sess=sess_str) }}">{{ i[0] }}</a></h5>
+                                        <h4>User Star : {{ i[9] }}</h4>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+              </div>
+        </div>
+    </div>
+
+    <script>
+        window.onload = function () {
+        
+            var options = {
+                title: {
+                    text: "Your Favourite Geners"
+                },
+                animationEnabled: true,
+                data: [{
+                    type: "pie",
+                    startAngle: 40,
+                    toolTipContent: "<b>{label}</b>: {y}%",
+                    showInLegend: "true",
+                    legendText: "{label}",
+                    indexLabelFontSize: 16,
+                    indexLabel: "{label} - {y}%",
+                    dataPoints: {{ stats_gen|safe }}
+                    
+                    /*[
+                        { y: 48.36, label: "Windows 7" },
+                    ]*/
+                }]
+            };
+            $("#chartContainerpie").CanvasJSChart(options);
+
+        
+            var chart = new CanvasJS.Chart("chartContainerbar", {
+                animationEnabled: true,
+                theme: "light2", // "light1", "light2", "dark1", "dark2"
+                title:{
+                    text: "Rating Percentages"
+                },
+                axisY: {
+                    title: "Percentage"
+                },
+                data: [{        
+                    type: "column",  
+                    showInLegend: true, 
+                    legendMarkerColor: "grey",
+                    legendText: "Stars",
+                    dataPoints: {{ stats_rating|safe }}
+                    
+                    /*[      
+                        { y: 300878, label: "Venezuela" },
+                    ]*/
+                }]
+            });
+            chart.render();
+        }
+        </script>
+
+</body>
+
+</html>
