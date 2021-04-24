@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Movie | {{ seen_movie_data.title }}</title>
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <!--Fontawesome CDN-->
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.3.1/css/all.css"
+        integrity="sha384-mzrmE5qonljUremFsqc01SB46JvROS7bZs3IO2EmfFsd15uHvIt+Y8vEf7N7fWAU" crossorigin="anonymous">
+
+    <!--Custom styles-->
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/profilestyle.css') }}">
+</head>
+
+<body class="m-3">
+    <div class="card text-center">
+        <div class="card-header display-3 text-warning font-weight-bold">
+            Movie Recommender System
+        </div>
+        <div class="card-body bg-warning">
+            <h5 class="card-title "></h5>
+            <p class="card-text"></p>
+            <div class="media ">
+                <img class="align-self-center mr-3 rounded border-success" src="{{ seen_movie_data.poster_path }}"
+                    alt="Generic placeholder image" style="width: 400px;border: 10px solid;">
+                <div class="media-body">
+                    <h1 class="text-left ml-3 display-2">{{ seen_movie_data.title }}</h1>
+                    <h3 class="text-left ml-3 ">--{{ seen_movie_data.tagline }}</h1>
+                    <br>
+                    <div class="container">
+                        <div class="row">
+                            <div class="col">
+                                <h3 class="text-left ml-3 "><span class="font-weight-bold">TMBD ID:</span>
+                                    {{ seen_movie_data.id }}</h3>
+                                <h3 class="text-left ml-3"><span class="font-weight-bold">IMBD ID :</span>
+                                    {{ seen_movie_data.imdb_id }}</h3>
+                                <h3 class="text-left ml-3"><span class="font-weight-bold">GENERS :</span>
+                                    {{ seen_movie_data.genres }}</h3>
+                                <h3 class="text-left ml-3"><span class="font-weight-bold">Popularity :</span>
+                                    {{ seen_movie_data.popularity }}</h3>
+                            </div>
+                            <div class="col">
+                                <h3 class="text-left ml-3"><span class="font-weight-bold">Released On :</span>
+                                    {{ seen_movie_data.release_date }}</h3>
+                                <h3 class="text-left ml-3"><span class="font-weight-bold">Rating :</span>
+                                    {{ seen_movie_data.vote_average }}</h3>
+                                <h3 class="text-left ml-3"><span class="font-weight-bold">Rating Count :</span> 
+                                    {{ seen_movie_data.vote_count }}</h3>
+                            </div>
+                        </div>
+                    </div>
+                    <br>
+                    <h3 class="text-left ml-3"><span class="font-weight-bold">Overview :</span> {{ seen_movie_data.overview }}</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+    <form class="mt-3 mb-3 p-3 bg-warning" method="POST">
+        <h3>HAVE U SEEN THE MOVIE GIVE RATING TO ADD IT INTO WACHED MOVIE LIST</h3>
+        <div class="form-row">
+            <input type="text" class="form-control form-control-lg d-none" name="sess" value="{{ sess }}" required>
+            <div class="col-7">
+                <input type="text" class="form-control form-control-lg" name="comment" placeholder="Comment" value="{{ user_rate_comm[0][1] }}">
+            </div>
+            <div class="form-group col">
+                <select id="inputState" class="form-control form-control-lg" name="rating" required value="{{ user_rate_comm[0][0] }}">
+                    <option value="">Rating</option>
+                    <option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option>
+                </select>
+            </div>
+            <div class="col">
+                <button type="submit" class="btn btn-primary mb-2 form-control form-control-lg" name="add_to_watch" value="{{ seen_movie_data.id }}">SUBMIT</button>
+            </div>
+        </div>
+    </form>
+    <div class="row">
+        {% for i in actor %}
+        <div class="col-m-4">
+            <div class="card m-3 " style="width: 18rem;">
+                <img class="card-img-top" src="{{ i.profile_path }}" alt="Card image cap">
+                <div class="card-body">
+                    <div class="card-text">
+                        <h5><a href="{{ url_for('movie',sess=sess_str,movie_id= i.id) }}">{{ i.name }}</a>
+                        </h5>
+                        <h4>Character : {{ i.character }}</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    <div class="">
+        <table class="table table-bordered table-hover table-responsive table-striped">
+            <thead>
+            <tr>
+                <th scope="col">Sr No.</th>
+                <th scope="col">Comment</th>
+                <th scope="col">Sentiment</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for i in comments %}
+            <tr>
+                <th scope="row">{{loop.index}}</th>
+                <td>{{ i.review_str }}</td>
+                <td>{{ i.status }}</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
