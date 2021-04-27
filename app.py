@@ -11,7 +11,7 @@ from tmdbv3api import Movie
 tmdb = TMDb()
 tmdb.api_key = 'bf048b0e274f5a9ee17fa19066dfc3ed'
 tmdb.language = 'en'
-
+sk_api=input("enter api")
 API_key='bf048b0e274f5a9ee17fa19066dfc3ed'
 def rand_str():
     digits = string.digits
@@ -86,16 +86,6 @@ def get_actor(x):
             ret_lst.append(temp_lst)
         return ret_lst
 
-def get_comments(Movie_ID): #get individual movie comments from imdb
-    text=[]
-    #must be changed according to ngrok values
-    query = 'http://9b94377b2ebc.ngrok.io/sentimentanalyisis?id='+str(Movie_ID)
-    response =  requests.get(query)
-    if response.status_code==200:
-        array = response.json()
-        return array
-    else:
-        return []
 
 def get_popular_movies():
     movie = Movie()
@@ -154,6 +144,65 @@ def get_data_from_API(API_key, Movie_IDs): # get movie data from api
             
     return data
 
+def get_movie_recom(movie_id_lst,seen_movie):
+    global sk_api
+    seen=[]
+    for i in seen_movie:
+        seen.append(i[0])
+    #print(seen)
+    ret_dict,temp_dict=[],{}
+    for i in movie_id_lst:
+        con = sqlite3.connect("app.db")
+        cur = con.cursor()
+        z=cur.execute("select title from movies where movieId =?",[i[0]]).fetchall()
+        nta,a=0,''
+        for j in z[0][0]:
+            if j=='(':
+                nta=1
+                continue
+            if j==')':
+                nta=0
+                continue
+            if nta==0:
+                a=a+j
+        moviename=a.strip()
+        query = sk_api+'/movieanalysis?moviename='+str(moviename)
+        print(query)
+        response =  requests.get(query)
+        if response.status_code==200:
+            array = response.json()
+            for k in array:
+                if k not in ret_dict:
+                    temp_dict[k] = 1
+                else:
+                    temp_dict[k] = temp_dict[k]+1
+    temp_dict=sorted(temp_dict, key=temp_dict.get, reverse=True)
+    a=0
+    for i in temp_dict:
+        if a<10:
+            z=cur.execute("select tmdb_id from movies where title like ?",[i]).fetchall()[0][0]
+            if int(z) not in seen:
+                print(z,seen)
+                ret_dict.append((z,-1))
+                a=a+1
+    print(ret_dict)
+    ret_dict=get_data_from_API(API_key, ret_dict)
+    return ret_dict
+        
+    #return ret_dict
+    
+def get_comments(Movie_ID): #get individual movie comments from imdb
+    global sk_api
+    text=[]
+    #must be changed according to ngrok values
+    query = sk_api+'/sentimentanalyisis?id='+str(Movie_ID)
+    response =  requests.get(query)
+    if response.status_code==200:
+        array = response.json()
+        return array
+    else:
+        return []
+
 
 app = Flask(__name__)
 app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'
@@ -211,20 +260,23 @@ def profile():
         sess=request.args.get('sess')
         con = sqlite3.connect("app.db")
         cur = con.cursor()
-        z=cur.execute("select movie_id,rateing from user_movie where user_id = (select user_id from user where sess= ?) order by time_stamp DESC",[sess]).fetchall()
-        user_data.append(len(z))
-        seen_movie_data=get_data_from_API(API_key, z)
+        seen_movie=cur.execute("select movie_id,rateing from user_movie where user_id = (select user_id from user where sess= ?) order by time_stamp DESC",[sess]).fetchall()
+        print(seen_movie)
+        user_data.append(len(seen_movie))
+        seen_movie_data=get_data_from_API(API_key, seen_movie)
         z=cur.execute("select name,email from user where user_id = (select user_id from user where sess=?)",[sess]).fetchall()
         user_data.append(z[0][0])
         user_data.append(z[0][1])
         stats=get_stats(seen_movie_data)
         popular_movie=get_popular_movies()
+        z=cur.execute("select movieId from movies where tmdb_id in (select movie_id from user_movie where user_id=(select user_id from user where sess= ?))",[sess]).fetchall()
+        recomended_movie=get_movie_recom(z,seen_movie)
         con.commit()
         if stats==[]:
-            return render_template('profile.html',sess_str=sess,data=seen_movie_data,user_data=user_data,popular_movie=popular_movie)
+            return render_template('profile.html',sess_str=sess,recomended_movie=recomended_movie,data=seen_movie_data,user_data=user_data,popular_movie=popular_movie)
         #print(stats[0])
         else:
-            return render_template('profile.html',sess_str=sess,data=seen_movie_data,popular_movie=popular_movie,user_data=user_data,stats_gen=json.dumps(stats[0]),stats_rating=json.dumps(stats[1]))
+            return render_template('profile.html',sess_str=sess,recomended_movie=recomended_movie,data=seen_movie_data,popular_movie=popular_movie,user_data=user_data,stats_gen=json.dumps(stats[0]),stats_rating=json.dumps(stats[1]))
 
 @app.route('/movie', methods=['GET','POST'])
 def movie():
