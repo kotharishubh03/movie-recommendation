@@ -5,8 +5,7 @@ import sqlite3
 import string
 import requests
 from flask import Flask, flash, redirect, render_template, request, url_for
-from tmdbv3api import TMDb
-from tmdbv3api import Movie
+from tmdbv3api import TMDb,Movie,Person
 
 tmdb = TMDb()
 tmdb.api_key = 'bf048b0e274f5a9ee17fa19066dfc3ed'
@@ -143,6 +142,34 @@ def get_data_from_API(API_key, Movie_IDs): # get movie data from api
         data.append(lst)
             
     return data
+
+def get_about_actors(x):
+    person_ret={}
+    people = Person()
+    p=people.details(int(x))
+    person_ret["name"]=p.name
+    person_ret["birthday"]=p.birthday
+    person_ret["place_of_birth"]=p.place_of_birth
+    person_ret["profile_path"]='https://image.tmdb.org/t/p/original'+str(p.profile_path)
+    person_ret["popularity"]=p.popularity
+    person_ret["biography"]=p.biography
+    #person_ret["movies"]=[]
+    p=people.movie_credits(int(x))
+    a,temp1=0,[]
+    for i in p['cast']:
+        temp={}
+        if a<20:
+            temp['id']=i['id']
+            temp['poster_path']='https://image.tmdb.org/t/p/original'+str(i['poster_path'])
+            temp['title']=i['title']
+            temp['character']=i['character']
+            temp1.append(temp)
+        else:
+            break
+        a+=1
+    person_ret["movies"]=temp1
+    return person_ret
+    
 
 def get_movie_recom(movie_id_lst,seen_movie):
     global sk_api
@@ -313,5 +340,16 @@ def movie():
         con.commit()
         return render_template('movie.html',sess=sess,seen_movie_data=seen_movie_data[0],actor=actor,comments=comments,user_rate_comm=z)
 
+@app.route('/actor', methods=['GET','POST'])
+def actor():
+    if request.method=='GET':
+        sess=request.args.get('sess')
+        actor_id=request.args.get('actor_id')
+        actor_data=get_about_actors(actor_id)
+        for i in actor_data['movies']:
+            print(i)
+    return render_template('actor.html',sess=sess,actor_data=actor_data)
+    
+    
 if __name__=='__main__':
     app.run(debug=True,port=5000,use_reloader=False)

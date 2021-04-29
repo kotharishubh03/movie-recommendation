@@ -88,7 +88,7 @@
                 <img class="card-img-top" src="{{ i.profile_path }}" alt="Card image cap">
                 <div class="card-body">
                     <div class="card-text">
-                        <h5><a href="{{ url_for('movie',sess=sess_str,movie_id= i.id) }}">{{ i.name }}</a>
+                        <h5><a href="{{ url_for('actor',sess=sess,actor_id= i.id) }}">{{ i.name }}</a>
                         </h5>
                         <h4>Character : {{ i.character }}</h4>
                     </div>
