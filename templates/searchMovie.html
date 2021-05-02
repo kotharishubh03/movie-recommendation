@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Movie</title>
+    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+    <link href="//code.jquery.com/ui/1.10.2/themes/smoothness/jquery-ui.css" rel="Stylesheet"></link>
+    <script src="//code.jquery.com/jquery-2.2.0.min.js"></script>
+    <script src="//code.jquery.com/ui/1.10.2/jquery-ui.js" ></script>
+</head>
+<body>
+    <div class="w3-container w3-margin">
+        <div class="w3-card-4">
+            <header class="w3-container w3-yellow w3-center">
+              <h1>SEARCH A MOVIE</h1>
+            </header>
+            <div class="w3-container">
+                <form class="w3-container ">
+                    <input class="w3-input w3-hide" type="text" name="sess" value="{{sess}}">
+                    <input id="autocomplete" class="w3-input w3-border w3-margin w3-padding" type="text" name="q" required>
+                    <button class="w3-btn w3-blue w3-margin w3-padding">Search</button>
+                    </form>
+            </div>
+        </div>
+        <div class="w3-row">
+            <div class="w3-container">
+            {% for i in movie_data %}
+                <div class="w3-card-4 w3-quarter w3-margin" style="width:22%">
+                    <img src="{{ i.poster_path }}" style="width:100%">
+                    <div class="w3-container w3-center">
+                        <h3><a class="w3-text-blue" href="{{ url_for('movie',sess=sess,movie_id= i.id) }}">{{ i.title }}</a></h5>
+                        
+                        <h3 class="w3-text-grey"><b>Popularity: {{i.popularity}}</b></h3>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+        </div>
+    </div>
+    <script type="text/javascript">
+        $(function() {
+            $("#autocomplete").autocomplete({
+                source:function(request, response) {
+                    $.getJSON("{{url_for('autocomplete')}}",{
+                        q: request.term, // in flask, "q" will be the argument to look for using request.args
+                    }, function(data) {
+                        response(data.matching_results); // matching_results from jsonify
+                    });
+                },
+                minLength: 2,
+            });
+        })
+        
+        </script>
+</body>
+</html>

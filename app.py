@@ -4,7 +4,7 @@ import random
 import sqlite3
 import string
 import requests
-from flask import Flask, flash, redirect, render_template, request, url_for
+from flask import Flask, flash, redirect, render_template, request, url_for,jsonify
 from tmdbv3api import TMDb,Movie,Person
 
 tmdb = TMDb()
@@ -194,7 +194,7 @@ def get_movie_recom(movie_id_lst,seen_movie):
                 a=a+j
         moviename=a.strip()
         query = sk_api+'/movieanalysis?moviename='+str(moviename)
-        print(query)
+        #print(query)
         response =  requests.get(query)
         if response.status_code==200:
             array = response.json()
@@ -209,10 +209,10 @@ def get_movie_recom(movie_id_lst,seen_movie):
         if a<10:
             z=cur.execute("select tmdb_id from movies where title like ?",[i]).fetchall()[0][0]
             if int(z) not in seen:
-                print(z,seen)
+                #print(z,seen)
                 ret_dict.append((z,-1))
                 a=a+1
-    print(ret_dict)
+    #print(ret_dict)
     ret_dict=get_data_from_API(API_key, ret_dict)
     return ret_dict
         
@@ -235,10 +235,6 @@ app = Flask(__name__)
 app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'
 
 @app.route('/', methods=['GET','POST'])
-@app.route('/home', methods=['GET','POST'])
-def home():
-    return render_template(url_for('home.html'))
-    
 @app.route('/login', methods=['GET','POST'])
 def login():
     if request.method=='POST':
@@ -250,13 +246,16 @@ def login():
             con = sqlite3.connect("app.db")
             cur = con.cursor()
             z=cur.execute("select user_id,password from user where email=?",[email]).fetchall()
-            #rows = z.fetchall() 
-            if z[0][1]==result:
-                sess_str=rand_str()
-                cur.execute("update user set sess=? where user_id=?",[sess_str,z[0][0]])
-                con.commit()
-                return redirect(url_for('profile',sess=sess_str))
-            else :
+            #rows = z.fetchall()
+            try:
+                if z[0][1]==result:
+                    sess_str=rand_str()
+                    cur.execute("update user set sess=? where user_id=?",[sess_str,z[0][0]])
+                    con.commit()
+                    return redirect(url_for('profile',sess=sess_str))
+                else :
+                    flash(u'Invalid Crdentials ! ','alert alert-danger alert-dismissible')
+            except:
                 flash(u'Invalid Crdentials ! ','alert alert-danger alert-dismissible')
         
     return render_template('login.html')
@@ -346,10 +345,38 @@ def actor():
         sess=request.args.get('sess')
         actor_id=request.args.get('actor_id')
         actor_data=get_about_actors(actor_id)
-        for i in actor_data['movies']:
-            print(i)
-    return render_template('actor.html',sess=sess,actor_data=actor_data)
-    
+        return render_template('actor.html',sess=sess,actor_data=actor_data)
+
+@app.route('/autocomplete', methods=['GET'])
+def autocomplete():
+    if request.method=='GET':
+        search = request.args.get('q')
+        con = sqlite3.connect("app.db")
+        cur = con.cursor()
+        query=cur.execute("select title from movies where title like ?",['%'+str(search)+'%'])
+        con.commit()
+        results = [mv[0] for mv in query.fetchall()]
+        return jsonify(matching_results=results)
+
+@app.route('/searchmovie', methods=['GET','POST'])
+def searchmovie():
+    if request.method=='GET':
+        if request.args.get('q')!=None:
+            search = request.args.get('q')
+            sess=request.args.get('sess')
+            con = sqlite3.connect("app.db")
+            cur = con.cursor()
+            z=[]
+            query=cur.execute("select tmdb_id from movies where title like ?",['%'+str(search)+'%']).fetchall()
+            for i in query:
+                z.append((i[0],-1))
+            movie_data=get_data_from_API(API_key, z)
+            con.commit()
+            print(query)
+            return render_template('searchMovie.html',sess=sess,movie_data=movie_data)
+        else:
+            sess=request.args.get('sess')
+            return render_template('searchMovie.html',sess=sess)
     
 if __name__=='__main__':
     app.run(debug=True,port=5000,use_reloader=False)

@@ -6,7 +6,6 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Profile</title>
-
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
@@ -14,12 +13,44 @@
     <!--script src="https://canvasjs.com/assets/script/jquery-1.11.1.min.js"></script-->
     <script src="https://canvasjs.com/assets/script/jquery.canvasjs.min.js"></script>
 
+    <script type="text/javascript" src="https://phppot.com/demo/creating-autocomplete-field-using-bootstrap/typeahead.js"></script>
+	<link href="https://phppot.com/demo/creating-autocomplete-field-using-bootstrap/typeahead.css"  rel="stylesheet" />
+
+
     <!--Fontawesome CDN-->
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.3.1/css/all.css"
         integrity="sha384-mzrmE5qonljUremFsqc01SB46JvROS7bZs3IO2EmfFsd15uHvIt+Y8vEf7N7fWAU" crossorigin="anonymous">
 
     <!--Custom styles-->
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/profilestyle.css') }}">
+    <script type="text/javascript" rel="stylesheet">
+        $(document).ready(function(){
+            var countries=''
+            $.getJSON( "{{ url_for('autocomplete') }}", function( data ) {
+            countries = data,
+            console.log(countries);
+            });
+            var countries_suggestion = new Bloodhound({
+                datumTokenizer: Bloodhound.tokenizers.whitespace,
+                queryTokenizer: Bloodhound.tokenizers.whitespace,
+                local: countries
+            });
+            console.log(countries_suggestion)
+            $('.typeahead').typeahead(
+                { minLength: 1 },
+                { source: countries_suggestion }
+            );
+        });  
+        </script>
+        <style>
+        .typeahead { border: 1px solid #CCCCCC;border-radius: 4px;padding: 8px 12px;width: 500px;font-size:1.5em;}
+        .tt-menu { width:500px; }
+        span.twitter-typeahead .tt-suggestion {padding: 10px 20px;	border-bottom:#CCC 1px solid;cursor:pointer;}
+        span.twitter-typeahead .tt-suggestion:last-child { border-bottom:0px; }
+        .bgColor {max-width: 440px;height: 200px;background-color: #c3e8cb;padding: 40px 70px;border-radius:4px;margin:20px auto;}
+        .demo-label {font-size:1.5em;color: #686868;font-weight: 500;}
+        </style>
+
 </head>
 
 <body class="mt-3 mb-3 mr-3 ml-3">
@@ -44,20 +75,20 @@
         <div class="card-footer text-muted bg-white">
             <ul class="nav nav-tabs" id="myTab" role="tablist">
                 <li class="nav-item" role="presentation">
-                    <a class="nav-link active" id="home-tab" data-toggle="tab" href="#home" role="tab"
-                        aria-controls="home" aria-selected="true">STATS</a>
+                    <a class="nav-link active" id="stats-tab" data-toggle="tab" href="#stats" role="tab"
+                        aria-controls="stats" aria-selected="true">STATS</a>
                 </li>
                 <li class="nav-item" role="presentation">
-                    <a class="nav-link" id="profile-tab" data-toggle="tab" href="#profile" role="tab"
-                        aria-controls="profile" aria-selected="false">RECOMMENDATION</a>
+                    <a class="nav-link" id="recomm-tab" data-toggle="tab" href="#recomm" role="tab"
+                        aria-controls="recomm" aria-selected="false">RECOMMENDATION</a>
                 </li>
                 <li class="nav-item" role="presentation">
-                    <a class="nav-link" id="contact-tab" data-toggle="tab" href="#contact" role="tab"
-                        aria-controls="contact" aria-selected="false">MOVIES WATCHED </a>
+                    <a class="nav-link" id="MoviesWatched-tab" data-toggle="tab" href="#MoviesWatched" role="tab"
+                        aria-controls="MoviesWatched" aria-selected="false">MOVIES WATCHED </a>
                 </li>
             </ul>
             <div class="tab-content" id="myTabContent">
-                <div class="tab-pane fade show active" id="home" role="tabpanel" aria-labelledby="home-tab">
+                <div class="tab-pane fade show active" id="stats" role="tabpanel" aria-labelledby="stats-tab">
                     {% if stats_rating %}
                     <div>
                         <div class="m-3 border border-success" id="chartContainerpie"
@@ -70,7 +101,7 @@
                     <h2>Add some movies in watched movies</h2>
                     {% endif %}
                 </div>
-                <div class="tab-pane fade" id="profile" role="tabpanel" aria-labelledby="profile-tab">
+                <div class="tab-pane fade" id="recomm" role="tabpanel" aria-labelledby="recomm-tab">
                     <h1>Recommendation For You</h1><hr>
                     <div class="row">
                         {% for i in recomended_movie %}
@@ -106,10 +137,9 @@
                         {% endfor %}
                     </div>
                 </div>
-                <div class="tab-pane fade" id="contact" role="tabpanel" aria-labelledby="contact-tab"><br>
+                <div class="tab-pane fade" id="MoviesWatched" role="tabpanel" aria-labelledby="MoviesWatched-tab"><br>
                     <div class="form-group">
-                        <label for="sam"><h2>Search A Movie:</h2></label>
-                        <input type="text" class="form-control" id="sam">
+                        <label><h2><a href="{{ url_for('searchmovie',sess=sess_str) }}" target="_blank">Search A Movie</a></h2></label>
                       </div><hr>
                     <div class="row">
                         {% for i in data %}
@@ -182,7 +212,6 @@
             chart.render();
         };
         </script>
-
 </body>
 
 </html>
