@@ -7,11 +7,14 @@ import requests
 from flask import Flask, flash, redirect, render_template, request, url_for,jsonify
 from tmdbv3api import TMDb,Movie,Person
 
+API_key=open('ApiKey.txt','r')
+API_key=API_key.read()
+print(API_key)
 tmdb = TMDb()
-tmdb.api_key = 'bf048b0e274f5a9ee17fa19066dfc3ed'
+tmdb.api_key =API_key
 tmdb.language = 'en'
-sk_api=input("enter api")
-API_key='bf048b0e274f5a9ee17fa19066dfc3ed'
+print("https://colab.research.google.com/drive/1346EhztureV4khTB7gb7JgEGwGZ1J0TK?authuser=1#scrollTo=p3BYV3pDmalR")
+sk_api=input("enter SK api=> ")
 def rand_str():
     digits = string.digits
     letter_digit_list = list(string.digits + string.ascii_letters)
@@ -320,7 +323,7 @@ def movie():
         else:
             cur.execute("update user_movie set rateing=? , comments=? where user_id = (select user_id from user where sess=?) and movie_id = ?",[rating,comment,sess,add_to_watch])
         con.commit()
-        return redirect(url_for('movie',sess=sess,movie_id=add_to_watch))
+        return redirect(url_for('searchmovie',sess=sess))
     if request.method=='GET':
         user_data=[]
         sess=request.args.get('sess')
